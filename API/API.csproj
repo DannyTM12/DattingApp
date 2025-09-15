@@ -8,6 +8,10 @@
 
   <ItemGroup>
     <Compile Include="client\src\app\app.ts" />
+    <Compile Remove="client\**\*" />
+    <Content Remove="client\**\*" />
+    <EmbeddedResource Remove="client\**\*" />
+    <None Remove="client\**\*" />
   </ItemGroup>
 
   <ItemGroup>
