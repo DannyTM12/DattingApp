@@ -10,15 +10,15 @@ namespace API.Controllers
     public class MembersController(AppDbContext context) : ControllerBase
     {
         [HttpGet]
-        public ActionResult<List<AppUser>> GetMembers()
+        public ActionResult<List<AppUser>> GetMembers() //https://localhost:5001/api/members
         {
             var members = context.Users.ToList();
 
             return members;
         }
 
-        [HttpGet("{id:string}")]
-        public ActionResult<AppUser> GetMember(string id)
+        [HttpGet("{id:string}")] 
+        public ActionResult<AppUser> GetMember(string id) //https://localhost:5001/api/member/bob-id
         {
             var member = context.Users.Find(id);
 
