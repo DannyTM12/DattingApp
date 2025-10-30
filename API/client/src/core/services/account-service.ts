@@ -10,10 +10,9 @@ import { RegisterCreds } from '../../types/registerCreds';
 export class AccountService {
   private http = inject(HttpClient);
   currentUser = signal<User | null>(null);
-
   baseUrl = "https://localhost:5001/api/";
 
-  register(creds: any): Observable<User> {
+  register(creds: RegisterCreds): Observable<User> {
     return this.http.post<User>(this.baseUrl + "account/register", creds).pipe(
       tap(user => {
         if (user) {
