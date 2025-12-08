@@ -1,0 +1,9 @@
+-- SQLite
+INSERT INTO Users (Id, DisplayName, Email)
+VALUES ('bob-id', 'Bob', 'bob@bikinibottom.com');
+
+INSERT INTO Users (Id, DisplayName, Email)
+VALUES ('arenita-id', 'Arenita', 'arenita@bikinibottom.com');
+
+INSERT INTO Users (Id, DisplayName, Email)
+VALUES ('patricio-id', 'Patricio', 'patricio@bikinibottom.com');

@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="client\src\app\app.ts" />
+    <Compile Remove="client\**\*" />
+    <Content Remove="client\**\*" />
+    <EmbeddedResource Remove="client\**\*" />
+    <None Remove="client\**\*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="client\.postcss.config.mjs" />
+    <Compile Include="client\.postcssrc.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="client\packages.json" />
+    <Content Include="client\src\app\app.html" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.8" />
+  </ItemGroup>
+
+</Project>
