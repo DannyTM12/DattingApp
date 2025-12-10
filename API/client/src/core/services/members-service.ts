@@ -1,6 +1,6 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Member } from '../../types/member';
+import { Member, Photo } from '../../types/member';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
@@ -19,4 +19,7 @@ export class MembersService {
     return this.http.get<Member[]>(this.baseUrl + "members");
   }
 
+  getPhotos(id: string) {
+    return this.http.get<Photo[]>(`${this.baseUrl}members/${id}/photos`);
+  }
 }
