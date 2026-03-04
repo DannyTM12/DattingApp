@@ -12,8 +12,15 @@ export interface Member {
 }
 
 export interface Photo {
-  id: string;
+  id: number;
   url: string;
   publicId?: string;
   memberId: string;
+}
+
+export type EditableMember = {
+  displayName: string;
+  description?: string;
+  city: string;
+  country: string;
 }
