@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using API.DTOs;
 using API.Entities;
 using API.Interfaces;
 using API.Mappers;
@@ -9,15 +11,13 @@ namespace API.Controllers;
 [Authorize]
 public class MembersController(IMembersRepository membersRepository) : BaseApiController
 {
-    // [AllowAnonymous]
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<Member>>> GetMembers()
     {
         return Ok(await membersRepository.GetMembersAsync());
     }
 
-    // [AllowAnonymous]
-    [HttpGet("{id}")] //localhost:5001/api/members/bob-id
+    [HttpGet("{id}")] // https://localhost:5001/api/members/bob-id
     public async Task<ActionResult<Member>> GetMember(string id)
     {
         var member = await membersRepository.GetMemberAsync(id);
@@ -32,4 +32,37 @@ public class MembersController(IMembersRepository membersRepository) : BaseApiCo
     {
         return Ok(await membersRepository.GetPhotosAsync(id));
     }
+
+    [HttpPut]
+    public async Task<ActionResult> UpdateMember(MemberUpdateRequest request)
+    {
+        var memberId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (memberId == null)
+        {
+            return BadRequest("No id found in token");
+        }
+
+        var member = await membersRepository.GetMemberAsync(memberId);
+
+        if (member == null)
+        {
+            return BadRequest("Failed to get member");
+        }
+
+        member.DisplayName = request.DisplayName ?? member.DisplayName;
+        member.DisplayName = string.IsNullOrEmpty(request.DisplayName) ? member.DisplayName : request.DisplayName;
+        member.Description = request.Description ?? member.Description;
+        member.City = request.City ?? member.City;
+        member.Country = request.Country ?? member.Country;
+
+        membersRepository.Update(member);
+
+        if (await membersRepository.SaveAllAsync())
+        {
+            return NoContent();
+        }
+
+        return BadRequest("Failed to update profile");
+    } 
 }
