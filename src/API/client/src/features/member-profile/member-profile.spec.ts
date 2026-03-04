@@ -1,23 +1,23 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { Component, inject, OnInit, signal } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { Member } from '../../types/member';
+import { DatePipe } from '@angular/common';
+import { MembersService } from '../../core/services/members-service';
 
-import { MemberProfile } from './member-profile';
+@Component({
+  selector: 'app-member-profile',
+  imports: [DatePipe],
+  templateUrl: './member-profile.html',
+  styleUrl: './member-profile.css'
+})
+export class MemberProfile implements OnInit {
+  private route = inject(ActivatedRoute);
+  protected member = signal<Member | undefined>(undefined);
+  protected membersService = inject(MembersService);
 
-describe('MemberProfile', () => {
-  let component: MemberProfile;
-  let fixture: ComponentFixture<MemberProfile>;
-
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [MemberProfile]
+  ngOnInit(): void {
+    this.route.parent?.data.subscribe(data => {
+      this.member.set(data["member"]);
     })
-    .compileComponents();
-
-    fixture = TestBed.createComponent(MemberProfile);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
-
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
-});
+  }
+}

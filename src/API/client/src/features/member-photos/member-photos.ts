@@ -1,9 +1,9 @@
-import { AsyncPipe } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { MembersService } from '../../core/services/members-service';
 import { ActivatedRoute } from '@angular/router';
-import { Observable } from 'rxjs';
 import { Photo } from '../../types/member';
+import { Observable } from 'rxjs';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
   selector: 'app-member-photos',
@@ -24,7 +24,7 @@ export class MemberPhotos {
   }
 
   get photoMocks() {
-    return Array.from({ length: 20 }, (_, i) => ({
+    return Array.from({ length: 0 }, (_, i) => ({
       url: "./user.jpg"
     }));
   }

@@ -1,8 +1,8 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
+import { environment } from '../../environments/environment';
 import { Member, Photo } from '../../types/member';
 import { Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -10,8 +10,9 @@ import { environment } from '../../environments/environment';
 export class MembersService {
   private http = inject(HttpClient);
   private baseUrl = environment.apiUrl;
+  editMode = signal(false);
 
-  getMember(id: string): Observable<Member>{
+  getMember(id: string): Observable<Member> {
     return this.http.get<Member>(this.baseUrl + "members/" + id);
   }
 
