@@ -11,4 +11,9 @@ public class RegisterRequest
   [Required]
   [MinLength(6)]
   public string Password { get; set; } = string.Empty;
+
+  [Required] public string Gender { get; set; } = string.Empty;
+  [Required] public string City { get; set; } = string.Empty; 
+  [Required] public string Country { get; set; } = string.Empty;
+  [Required] public DateOnly BirthDay { get; set;}
 }
