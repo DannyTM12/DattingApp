@@ -5,16 +5,17 @@ import { MembersService } from '../../core/services/members-service';
 import { FormsModule, NgForm } from '@angular/forms';
 import { ToastService } from '../../core/services/toast-service';
 import { AccountService } from '../../core/services/account-service';
+import { TimeAgoPipe } from '../../core/pipes/time-ago-pipe';
 
 @Component({
   selector: 'app-member-profile',
-  imports: [DatePipe, FormsModule],
+  imports: [DatePipe, FormsModule, TimeAgoPipe],
   templateUrl: './member-profile.html',
   styleUrl: './member-profile.css'
 })
 export class MemberProfile implements OnInit, OnDestroy {
   @ViewChild('memberProfileEditForm') memberProfileEditForm?: NgForm;
-  @HostListener('window:beforeunload', ['$event']) notify ($event:BeforeUnloadEvent) {
+  @HostListener('window:beforeunload', ['$event']) notify($event: BeforeUnloadEvent) {
     if (this.memberProfileEditForm?.dirty) {
       $event.preventDefault();
     }
@@ -46,7 +47,7 @@ export class MemberProfile implements OnInit, OnDestroy {
 
   updateProfile() {
     if (!this.membersService.member()) return;
-    const updatedMember = {...this.membersService.member(), ...this.editableMember};
+    const updatedMember = { ...this.membersService.member(), ...this.editableMember };
     this.membersService.updateMember(this.editableMember).subscribe({
       next: () => {
         const currentUser = this.accountService.currentUser();
