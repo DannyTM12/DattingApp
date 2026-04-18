@@ -1,58 +1,45 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
-import { environment } from '../../environments/environment';
-import { EditableMember, Member, MemberParams, Photo } from '../../types/member';
+import { LoginCreds, RegisterCreds, User } from '../../types/user';
 import { Observable, tap } from 'rxjs';
-import { PaginationResult } from '../../types/paginationMetadata';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
-export class MembersService {
+export class AccountService {
   private http = inject(HttpClient);
-  private baseUrl = environment.apiUrl;
-  editMode = signal(false);
-  member = signal<Member | null>(null);
+  currentUser = signal<User | null>(null);
+  baseUrl = environment.apiUrl;
 
-  getMember(id: string): Observable<Member> {
-    return this.http.get<Member>(this.baseUrl + "members/" + id).pipe(
-      tap(member => {
-        this.member.set(member);
+  register(creds: RegisterCreds): Observable<User> {
+    return this.http.post<User>(this.baseUrl + "account/register", creds).pipe(
+      tap(user => {
+        if (user) {
+          this.setCurrentUser(user);
+        }
       })
     );
   }
 
-  getMembers(memberParams: MemberParams): Observable<PaginationResult<Member>> {
-    let params = new HttpParams();
-    params = params.append('pageNumber', memberParams.pageNumber);
-    params = params.append('pageSize', memberParams.pageSize);
-    params = params.append('minAge', memberParams.minAge);
-    params = params.append('maxAge', memberParams.maxAge);
-    params = params.append('orderBy', memberParams.orderBy);
-    if (memberParams.gender) params = params.append('gender', memberParams.gender);
-
-    return this.http.get<PaginationResult<Member>>(this.baseUrl + "members", { params });
+  login(creds: LoginCreds): Observable<User> {
+    return this.http.post<User>(this.baseUrl + "account/login", creds).pipe(
+      tap(user => {
+        if (user) {
+          this.setCurrentUser(user);
+        }
+      })
+    );
   }
 
-  getPhotos(id: string) {
-    return this.http.get<Photo[]>(`${this.baseUrl}members/${id}/photos`);
+  setCurrentUser(user: User) {
+    localStorage.setItem("user", JSON.stringify(user));
+    this.currentUser.set(user);
   }
 
-  updateMember(member: EditableMember) {
-    return this.http.put(this.baseUrl + "members", member);
-  }
-
-  uploadPhoto(file: File) {
-    const formData = new FormData();
-    formData.append('file', file);
-    return this.http.post<Photo>(this.baseUrl + 'members/photo', formData);
-  }
-
-  setMainPhoto(photo: Photo) {
-    return this.http.put(this.baseUrl + 'members/photo/' + photo.id, {});
-  }
-
-  deletePhoto(photoId: number) {
-    return this.http.delete(this.baseUrl + 'members/photo/' + photoId);
+  logout() {
+    localStorage.removeItem("user");
+    localStorage.removeItem("filters");
+    this.currentUser.set(null);
   }
 }
