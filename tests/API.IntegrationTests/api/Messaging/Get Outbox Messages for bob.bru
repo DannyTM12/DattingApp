@@ -1,26 +1,24 @@
 meta {
-  name: Get Outbox Messages for arenita
+  name: Get Outbox Messages for bob
   type: http
-  seq: 7
+  seq: 8
 }
 
 get {
-  url: {{baseUrl}}/api/messages
-  body: json
+  url: {{baseUrl}}/api/messages?container=outbox
+  body: none
   auth: inherit
 }
 
-headers {
-  Authorization: Bearer {{token}}
+params:query {
+  container: outbox
 }
 
-body:json {
-  {
-    "container": "outbox"
-  }
+headers {
+  Authorization: Bearer {{otherToken}}
 }
 
 settings {
   encodeUrl: true
   timeout: 0
-}gg
+}
