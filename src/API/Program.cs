@@ -89,8 +89,8 @@ public static class Program
             ));
 
             app.UseDeveloperExceptionPage();
-            //app.UseOpenApi();
-            //app.UseSwaggerUi();
+            // app.UseOpenApi();
+            // app.UseSwaggerUi();
 
             // app.UseReDoc(options =>
             // {
@@ -132,10 +132,14 @@ public static class Program
 
     private static void AddScopedServices(WebApplicationBuilder builder)
     {
-        builder.Services.AddScoped<ITokenService, TokenService>();
+        // Repositories and services
         builder.Services.AddScoped<IMembersRepository, MembersRepository>();
-        builder.Services.AddScoped<IPhotoService, PhotoService>();
+        builder.Services.AddScoped<IMessagesRepository, MessagesRepository>();
         builder.Services.AddScoped<ILikesRepository, LikesRepository>();
+        builder.Services.AddScoped<IPhotoService, PhotoService>();
+        builder.Services.AddScoped<ITokenService, TokenService>();
+
+        // Other settings
         builder.Services.AddScoped<UserActivityLogger>();
         builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
     }
