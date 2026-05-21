@@ -1,4 +1,4 @@
-using API.Dtos;
+using API.DTOs;
 using API.Entities;
 using API.Interfaces;
 
@@ -6,15 +6,15 @@ namespace API.Mappers;
 
 public static class AppUserMapper
 {
-  public static UserResponse toDto(this AppUser user, ITokenService tokenService)
-  {
-    return new UserResponse
+    public static async Task<UserResponse> ToDto(this AppUser user, ITokenService tokenService)
     {
-      Id = user.Id,
-      DisplayName = user.DisplayName,
-      Email = user.Email,
-      ImageUrl = user.ImageUrl,
-      Token = tokenService.CreateToken(user)
-    };
-  }
+        return new UserResponse
+        {
+            Id = user.Id,
+            DisplayName = user.DisplayName,
+            Email = user.Email!,
+            ImageUrl = user.ImageUrl,
+            Token = await tokenService.CreateToken(user)
+        };
+    }
 }
