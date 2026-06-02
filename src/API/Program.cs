@@ -2,14 +2,17 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Text.Json.Serialization;
 using API.Data;
+using API.Entities;
 using API.Helpers;
 using API.Interfaces;
 using API.Middlewares;
 using API.Services;
+using API.SignalR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-//using NSwag;
+using NSwag;
 
 namespace API;
 
@@ -36,30 +39,8 @@ public static class Program
 
         AddDbContext(builder);
         AddScopedServices(builder);
-
-        // builder.Services.AddOpenApiDocument(options =>
-        // {
-        //     options.PostProcess = document =>
-        //     {
-        //         document.Info = new OpenApiInfo
-        //         {
-        //             Version = "v1",
-        //             Title = "Dating API",
-        //             Description = "An ASP.NET Core Web API for managing Dating items",
-        //             TermsOfService = "https://example.com/terms",
-        //             Contact = new OpenApiContact
-        //             {
-        //                 Name = "Example Contact",
-        //                 Url = "https://example.com/contact"
-        //             },
-        //             License = new OpenApiLicense
-        //             {
-        //                 Name = "Example License",
-        //                 Url = "https://example.com/license"
-        //             }
-        //         };
-        //     };
-        // });
+        AddOpenApiDocument(builder);
+        AddIdentity(builder);
 
         WebApplication app = builder.Build();
 
@@ -68,8 +49,10 @@ public static class Program
         try
         {
             var context = services.GetRequiredService<AppDbContext>();
+            var userManager = services.GetRequiredService<UserManager<AppUser>>();
             context.Database.Migrate();
-            Task.Run(() => Seed.SeedUsers(context));
+            context.Connections.ExecuteDelete();
+            Task.Run(() => Seed.SeedUsers(userManager));
         }
         catch (Exception ex)
         {
@@ -83,24 +66,26 @@ public static class Program
         {
             app.UseCors(x => x.AllowAnyHeader()
             .AllowAnyMethod()
+            .AllowCredentials()
             .WithOrigins(
                 "http://localhost:4200",
                 "https://localhost:4200"
             ));
 
             app.UseDeveloperExceptionPage();
-            //app.UseOpenApi();
-            //app.UseSwaggerUi();
+            app.UseOpenApi();
+            app.UseSwaggerUi();
 
-            // app.UseReDoc(options =>
-            // {
-            //     options.Path = "/redoc";
-            // });
+            app.UseReDoc(options =>
+            {
+                options.Path = "/redoc";
+            });
         }
         app.UseAuthentication();
         app.UseAuthorization();
         app.MapControllers();
-
+        app.MapHub<PresenceHub>("hubs/presence");
+        app.MapHub<MessageHub>("hubs/messages");
         app.Run();
     }
 
@@ -119,7 +104,25 @@ public static class Program
                     ValidateIssuer = false,
                     ValidateAudience = false
                 };
+
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        var accessToken = context.Request.Query["access_token"];
+                        var path = context.HttpContext.Request.Path;
+                        if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+                        {
+                            context.Token = accessToken;
+                        }
+                        
+                        return Task.CompletedTask;
+                    }
+                };
             });
+        builder.Services.AddAuthorizationBuilder()
+            .AddPolicy("RequireAdminRole", policy => policy.RequireRole("Admin"))
+            .AddPolicy("ModeratePhotoRole", policy => policy.RequireRole("Admin", "Moderator"));
     }
 
     private static void AddDbContext(WebApplicationBuilder builder)
@@ -132,11 +135,55 @@ public static class Program
 
     private static void AddScopedServices(WebApplicationBuilder builder)
     {
-        builder.Services.AddScoped<ITokenService, TokenService>();
+        // Repositories and services
         builder.Services.AddScoped<IMembersRepository, MembersRepository>();
-        builder.Services.AddScoped<IPhotoService, PhotoService>();
+        builder.Services.AddScoped<IMessagesRepository, MessagesRepository>();
         builder.Services.AddScoped<ILikesRepository, LikesRepository>();
+        builder.Services.AddScoped<IPhotoService, PhotoService>();
+        builder.Services.AddScoped<ITokenService, TokenService>();
+
+        // Other settings
         builder.Services.AddScoped<UserActivityLogger>();
         builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
+        builder.Services.AddSignalR();
+        builder.Services.AddSingleton<PresenceTracker>();
+    }
+
+    private static void AddOpenApiDocument(WebApplicationBuilder builder)
+    {
+        builder.Services.AddOpenApiDocument(options =>
+        {
+            options.PostProcess = document =>
+            {
+                document.Info = new OpenApiInfo
+                {
+                    Version = "v1",
+                    Title = "Dating API",
+                    Description = "An ASP.NET Core Web API for managing Dating items",
+                    TermsOfService = "https://example.com/terms",
+                    Contact = new OpenApiContact
+                    {
+                        Name = "Example Contact",
+                        Url = "https://example.com/contact"
+                    },
+                    License = new OpenApiLicense
+                    {
+                        Name = "Example License",
+                        Url = "https://example.com/license"
+                    }
+                };
+            };
+        });
+    }
+
+    private static void AddIdentity(WebApplicationBuilder builder)
+    {
+        builder.Services.AddIdentityCore<AppUser>(opt =>
+        {
+            opt.Password.RequireNonAlphanumeric = false;
+            opt.User.RequireUniqueEmail = true;
+        })
+        .AddRoles<IdentityRole>()
+        .AddEntityFrameworkStores<AppDbContext>();
     }
 }
